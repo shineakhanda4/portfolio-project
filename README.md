@@ -402,7 +402,7 @@ This repository intentionally does **not** send fake `X-Powered-By: PHP` headers
 └── vite.config.ts
 ```
 
-## Assets and attribution
+## Assets and attribution.
 
 - The portrait is the supplied illustrated Shine Akhanda artwork, with the supplied favicon package used for browser, Apple, and Android icons.
 - Project screenshots were captured from the public live websites on 27 October 2026 and are used for portfolio reference. They remain the property of their respective owners.
