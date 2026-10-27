@@ -1,0 +1,34 @@
+# dependencies
+node_modules/
+
+# production builds
+dist/
+dist-server/
+
+# environment and secrets
+.env
+.env.*
+!.env.example
+.dev.vars
+.wrangler/
+
+# logs and OS files
+*.log
+.DS_Store
+Thumbs.db
+
+# editor files
+.vscode/
+.idea/
+
+# test artefacts
+coverage/
+playwright-report/
+test-results/
+
+# local generated screenshots
+screenshots/
+audit-artifacts/
+
+# local agent state
+.commandcode/

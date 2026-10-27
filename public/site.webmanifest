@@ -1,0 +1,25 @@
+{
+  "name": "Shine Akhanda — Web Developer & Digital Marketing Expert",
+  "short_name": "Shine Akhanda",
+  "description": "Portfolio of Shine Akhanda, web developer, digital marketing expert, and founder of Cave Technologies in Mymensingh, Bangladesh.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#f2f0ea",
+  "theme_color": "#f2f0ea",
+  "lang": "en-BD",
+  "icons": [
+    {
+      "src": "/android-chrome-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/android-chrome-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}

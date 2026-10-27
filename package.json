@@ -1,0 +1,72 @@
+{
+  "name": "shineakhanda.dev",
+  "version": "1.0.0",
+  "private": true,
+  "description": "The official portfolio of Shine Akhanda — web developer, digital marketing expert, and founder of Cave Technologies.",
+  "type": "module",
+  "scripts": {
+    "predev": "node scripts/generate-blog-index.mjs",
+    "dev": "vite",
+    "blog:index": "node scripts/generate-blog-index.mjs",
+    "prebuild": "node scripts/generate-blog-index.mjs",
+    "typecheck": "tsc --noEmit",
+    "build:client": "vite build",
+    "build:ssr": "vite build --ssr src/entry-server.tsx --outDir dist-server --emptyOutDir",
+    "prerender": "node scripts/prerender.mjs",
+    "build": "npm run typecheck && npm run build:client && npm run build:ssr && npm run prerender",
+    "preview": "node scripts/serve-static.mjs",
+    "preview:vite": "vite preview --port 4173",
+    "assets": "node scripts/generate-assets.mjs",
+    "audit": "node scripts/audit.mjs",
+    "validate": "node scripts/validate-build.mjs",
+    "test:api": "node --experimental-strip-types scripts/test-hono.mjs",
+    "test": "npm run typecheck"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/shineakhanda4/portfolio-project.git"
+  },
+  "homepage": "https://shineakhanda.dev",
+  "author": "Shine Akhanda",
+  "license": "SEE LICENSE IN LICENSE",
+  "keywords": [
+    "shine akhanda",
+    "web developer mymensingh",
+    "web developer bangladesh",
+    "digital marketing bangladesh",
+    "react developer",
+    "linux server administration",
+    "cave technologies"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "@fontsource-variable/manrope": "^5.3.0",
+    "@fontsource-variable/newsreader": "^5.3.0",
+    "framer-motion": "^14.7.1",
+    "hono": "^4.13.14",
+    "js-yaml": "^5.5.0",
+    "lucide-react": "^1.62.0",
+    "marked": "^18.1.2",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
+    "react-icons": "^5.7.0",
+    "react-router-dom": "^7.18.4"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "^4.3.3",
+    "@types/js-yaml": "^4.0.9",
+    "@types/node": "^26.6.5",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@vitejs/plugin-react": "^6.1.2",
+    "axe-core": "^4.14.0",
+    "lighthouse": "^13.5.0",
+    "playwright-core": "^1.64.1",
+    "sharp": "^0.35.5",
+    "tailwindcss": "^4.3.3",
+    "typescript": "^7.0.2",
+    "vite": "^8.3.5"
+  }
+}
