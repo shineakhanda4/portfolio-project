@@ -461,8 +461,8 @@ export function Contact() {
 
                 <div className="flex flex-col gap-4 border-t border-line pt-5 sm:flex-row sm:items-center sm:justify-between">
                   <p className="max-w-xs text-[0.65rem] leading-5 text-muted">
-                    This form is handled by a Hono API on Cloudflare Pages. If delivery is
-                    unavailable, the form will show an error and email or phone remains available.
+                    This form is handled by a Hono API on Cloudflare. If delivery is unavailable,
+                    the form will show an error and email or phone remains available.
                   </p>
                   <button
                     type="submit"

@@ -175,7 +175,7 @@ Location: Mymensingh, Bangladesh
 Telephone: +8801302776234
 Email: me@shineakhanda.dev
 Primary language: English; Bengali-language client work is also relevant.
-Contact backend: Hono running on Cloudflare Pages Functions at /api/contact.
+Contact backend: Hono running on Cloudflare (Workers static assets or Pages Functions) at /api/contact.
 
 ## Professional identity
 - Web developer and digital marketing professional.
@@ -275,6 +275,11 @@ async function main() {
   );
   await writeFile(path.join(distDir, "robots.txt"), renderRobots(siteUrl), "utf8");
   await writeFile(path.join(distDir, "_redirects"), renderRedirects(manifest.paths), "utf8");
+  await writeFile(
+    path.join(distDir, ".assetsignore"),
+    "_headers\n_redirects\n_routes.json\n",
+    "utf8",
+  );
   await writeFile(path.join(distDir, "rss.xml"), renderRss(siteUrl, posts), "utf8");
   await writeFile(
     path.join(distDir, "llms.txt"),

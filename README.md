@@ -24,7 +24,8 @@ Verified locally:
 
 Not verified or completed:
 
-- The site has **not been deployed** to Cloudflare Pages or a custom domain.
+- The Worker deployment configuration is fixed and verified with a Wrangler dry-run and local `wrangler dev`.
+- The production Cloudflare deploy after the fix and custom-domain configuration still need confirmation.
 - Google Search Console and Bing Webmaster Tools have **not been verified**.
 - The contact form requires a Resend account, verified sender, and Cloudflare environment variables. It deliberately returns an error until those are configured; delivery has not been claimed or tested here.
 - Project role notes are intentionally limited to publicly verifiable information. Client-approved case-study details can be added later.
@@ -37,7 +38,7 @@ Not verified or completed:
 - React Router 7
 - Tailwind CSS 4
 - Framer Motion
-- Hono on Cloudflare Pages Functions
+- Hono on Cloudflare Workers and Pages Functions
 - Lucide React and React Icons (brand icons)
 - Marked and js-yaml for Markdown content
 - Self-hosted Newsreader and Manrope fonts
@@ -212,58 +213,84 @@ Edit `src/data/services.ts`. Each service gets a detail route automatically. Kee
 
 Edit `src/data/skills.ts`, choose an existing icon key or add one in `src/components/ui/BrandIcon.tsx`, and add the technology with a short real description.
 
-## Cloudflare Pages deployment
+## Cloudflare deployment
 
-### 1. Push the repository
+The repository supports both deployment models:
 
-The current repository has no commits initially. Create the initial commit in GitHub when ready. Do not commit `.env`, API keys, or screenshots of private systems.
+- **Cloudflare Workers** — the current deployment configuration (`shine-portfolio`), with static assets and a Hono API.
+- **Cloudflare Pages** — the original target, with `functions/api/[[path]].ts`, `_headers`, `_redirects`, and `_routes.json`.
 
-### 2. Create a Cloudflare Pages project
+### Workers — current deployment
 
-- Connect the GitHub repository.
-- Framework preset: **None**.
+The earlier deploy failure came from Cloudflare auto-detecting Hono as a framework without an explicit Worker entry/configuration. `wrangler.toml` and `worker/index.ts` now define the deployment explicitly.
+
+```text
+Worker name:       shine-portfolio
+Build command:     npm run build
+Deploy command:    npx wrangler deploy
+```
+
+`wrangler.toml` configures:
+
+- `main = "worker/index.ts"`
+- `assets.directory = "./dist"`
+- `assets.binding = "ASSETS"`
+- `assets.run_worker_first = true`
+- `assets.not_found_handling = "404-page"`
+- `assets.html_handling = "none"`
+
+The Worker:
+
+- serves `/api/*` through the shared Hono app;
+- resolves clean URLs such as `/about` and `/projects/hylic-sketch` to their directory indexes;
+- redirects trailing-slash variants with 301;
+- applies security headers and noindex headers for privacy/tag pages;
+- serves the real `404.html` with a 404 status.
+
+`dist/.assetsignore` prevents `_headers`, `_redirects`, and `_routes.json` from being uploaded as public Worker assets. Both the Wrangler dry-run and local `wrangler dev` verification pass.
+
+### Pages — alternative deployment
+
+To deploy specifically as Cloudflare Pages, create a **Pages** project rather than a Worker:
+
 - Build command: `npm run build`
-- Build output directory: `dist`
-- Production branch: whichever branch you deploy (`main` or `master`).
-- Set `NODE_VERSION=22` if the build environment does not infer it.
+- Build output: `dist`
+- Do not configure a `npx wrangler deploy` deploy command.
+- `functions/api/[[path]].ts` wraps the shared Hono app using the Pages adapter.
+- `_headers`, `_redirects`, and `_routes.json` handle headers, direct-route rewrites, and Function routing.
 
-### 3. Environment variables
+### Environment variables
 
-Build-time variables:
+Add these to either the Worker or Pages project:
 
 ```text
 SITE_URL=https://shineakhanda.dev
 VITE_SITE_URL=https://shineakhanda.dev
-```
-
-`VITE_SITE_URL` is public and is included in the client. `SITE_URL` is used by the prerender script for sitemap and robots output. Both should agree. Rebuild after changing the domain.
-
-Contact endpoint runtime variables:
-
-```text
 RESEND_API_KEY=...
 CONTACT_TO_EMAIL=me@shineakhanda.dev
 CONTACT_FROM_EMAIL=Shine Akhanda Website <website@shineakhanda.dev>
 ```
 
-`CONTACT_TO_EMAIL` defaults to `me@shineakhanda.dev` in the Hono handler, but setting it explicitly is recommended. Create the Resend API key and verify the `shineakhanda.dev` sending domain first. The form endpoint returns a clear configuration error when Resend is not ready. That behavior is intentional — the form never shows a false success state.
+`VITE_SITE_URL` is public and included in the client. `SITE_URL` is used by the prerender script. Both should agree. Rebuild after changing the domain. `CONTACT_TO_EMAIL` defaults to `me@shineakhanda.dev`, but setting it explicitly is recommended. The form returns a clear configuration error until Resend and a verified sender are configured.
 
-### 4. Hono Functions and routing
+### Hono API
 
-- `functions/api/[[path]].ts` is a **Hono** app mounted as the Cloudflare Pages Function for `/api/*`.
-- API responses identify the real backend with `X-Powered-By: Hono`.
-- Available API routes: `POST /api/contact`, `GET /api/contact` (method guidance), and `GET /api/health` (Hono/Cloudflare runtime metadata).
-- `public/_routes.json` limits function invocation to `/api/*`.
-- `public/_headers` adds security headers and cache rules.
-- `dist/_redirects` is generated with an explicit 200 rewrite for every prerendered route, so direct navigation and browser refresh reliably serve the correct HTML.
-- It also canonicalises trailing-slash variants with 301 redirects, keeping one indexed URL form per page.
-- Unknown paths use `dist/404.html` and should return a 404 status through Cloudflare Pages.
+The shared API lives at `src/server/api.ts` and is mounted by:
 
-### 5. Custom domain and HTTPS
+- `worker/index.ts` for Cloudflare Workers;
+- `functions/api/[[path]].ts` for Cloudflare Pages Functions.
 
-Add the domain in **Pages → Custom domains**. Cloudflare handles HTTPS. Use one canonical origin, for example `https://shineakhanda.dev`, and redirect `www` to it if `www` is also attached. Update `SITE_URL`, `VITE_SITE_URL`, and the canonical/OG assumptions by rebuilding.
+API responses use `X-Powered-By: Hono` and `X-Robots-Tag: noindex`. Routes:
 
-### 6. Verify after deployment
+- `POST /api/contact`
+- `GET /api/contact` (method guidance)
+- `GET /api/health`
+
+### Domain and HTTPS
+
+Attach `shineakhanda.dev` to the Worker or Pages project in Cloudflare, enable HTTPS, and redirect `www` to the canonical apex domain if both are attached. One canonical origin must be used in `SITE_URL` and `VITE_SITE_URL`.
+
+### Verify after deployment
 
 - Open each route directly in a new tab and refresh.
 - Confirm the 404 page returns a 404 response.
@@ -277,7 +304,7 @@ Add the domain in **Pages → Custom domains**. Cloudflare handles HTTPS. Use on
 
 The React form validates name, email, project type, message length, and consent, with an anti-spam honeypot. It posts JSON to `/api/contact`.
 
-The Hono Pages Function:
+The Hono API:
 
 - validates the same fields on the server;
 - checks same-origin requests;
@@ -346,7 +373,7 @@ The production website builds and functions without PHP. The presence of this fi
 
 ### Technology detection and PHP
 
-The production stack is genuinely React + TypeScript + Vite on Cloudflare Pages, with Hono for the API. Technology scanners may detect Cloudflare and some frontend signals, but Cloudflare Pages has no PHP runtime.
+The production stack is genuinely React + TypeScript + Vite on Cloudflare Workers, with Hono for the API and a Pages-compatible function wrapper. Technology scanners may detect Cloudflare and some frontend signals, but the deployment has no PHP runtime.
 
 This repository intentionally does **not** send fake `X-Powered-By: PHP` headers, serve fake PHP responses, or manipulate scanner fingerprints. The PHP example is evidence of PHP familiarity at the source-code level; it is not a live PHP deployment. Wappalyzer detection of PHP is therefore not promised.
 
@@ -355,8 +382,11 @@ This repository intentionally does **not** send fake `X-Powered-By: PHP` headers
 ```text
 .
 ├── examples/php-demo.php
-├── functions/api/[[path]].ts  # Hono API on Cloudflare Pages
+├── functions/api/[[path]].ts  # Hono adapter for Pages Functions
+├── worker/index.ts            # Cloudflare Worker + Hono API
+├── wrangler.toml              # explicit Worker/assets deployment config
 ├── public/
+│   ├── .assetsignore
 │   ├── .well-known/security.txt
 │   ├── blog/                 # generated article covers
 │   ├── images/               # supplied illustration + social card
@@ -385,6 +415,7 @@ This repository intentionally does **not** send fake `X-Powered-By: PHP` headers
 │   ├── data/
 │   ├── generated/blogIndex.ts  # generated metadata, not hand-edited
 │   ├── hooks/
+│   ├── server/api.ts           # shared Hono API
 │   ├── lib/
 │   │   ├── blogContent.ts      # full Markdown/HTML, article routes only
 │   │   ├── blogMeta.ts         # metadata, tags, related posts

@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { pathToFileURL } from "node:url";
 
-const moduleUrl = pathToFileURL("functions/api/[[path]].ts").href;
+const moduleUrl = pathToFileURL("src/server/api.ts").href;
 let capturedEmail = null;
 
 globalThis.fetch = async (input, init) => {
@@ -21,8 +21,9 @@ const health = await app.request("http://localhost/api/health");
 assert.equal(health.status, 200);
 const healthBody = await health.json();
 assert.equal(healthBody.backend, "Hono");
-assert.equal(healthBody.runtime, "Cloudflare Pages Functions");
+assert.equal(healthBody.runtime, "Cloudflare Workers / Pages Functions");
 assert.equal(health.headers.get("x-powered-by"), "Hono");
+assert.equal(health.headers.get("x-robots-tag"), "noindex");
 
 const getContact = await app.request("http://localhost/api/contact");
 assert.equal(getContact.status, 405);
